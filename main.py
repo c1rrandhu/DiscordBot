@@ -43,3 +43,5 @@ async def search(ctx):
 async def on_message(message):
     if not message.author.bot and '#!' not in message.content:
         await message.channel.send("I've received a message")
+
+bot.run(TOKEN)

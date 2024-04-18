@@ -118,6 +118,8 @@ async def search(interaction: discord.Interaction, brand: str):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
+                ans1.append(s)
+
             await interaction.response.send_message('\n------------------------\n\n'.join(ans1))
         else:
             await interaction.response.send_message("""По вашему запросу ничего не нашлось, попробуйте еще раз.

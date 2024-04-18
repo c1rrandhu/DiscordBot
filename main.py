@@ -1,16 +1,45 @@
-# This is a sample Python script.
+import discord
+import sqlite3
+from discord.ext import commands
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+bot_contr = False
+intents = discord.Intents.default()
+intents.members = True
+intents.message_content = True
+bot = commands.Bot(command_prefix='#!', intents=intents)
+
+db = sqlite3.connect('cars_database')
+cur = db.cursor()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@bot.command(name='start')
+async def start(ctx):
+    global bot_contr
+    bot_contr = True
+    await ctx.send('Hello!')
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+@bot.command(name='finish')
+async def finish(ctx):
+    global bot_contr
+    bot_contr = False
+    await ctx.send('Goodbye!')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@bot.command(name='helper')
+async def help_bot(ctx):
+    if bot_contr:
+        data = '\n'.join(["Soon there'll be user manual here..."])
+        await ctx.send(data)
+
+
+@bot.command(name='search')
+async def search(ctx):
+    if bot_contr:
+        await ctx.send('123')
+
+
+@bot.listen()
+async def on_message(message):
+    if not message.author.bot and '#!' not in message.content:
+        await message.channel.send("I've received a message")

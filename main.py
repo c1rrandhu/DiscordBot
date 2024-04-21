@@ -28,6 +28,7 @@ async def on_ready():
 async def start(interaction: discord.Interaction):
     global bot_contr
     bot_contr = True
+    # await interaction.response.send_message()
     await interaction.response.send_message("""Привет! Я - бот-помощник по поиску и выборе автомобиля.\n
 Чтобы узнать, как я работаю вызови команду /helper""", ephemeral=True)
 
@@ -239,7 +240,9 @@ async def search_by_price(interaction: discord.Interaction, price: str):
 @bot.listen()
 async def on_message(message):
     if not message.author.bot and '/' not in message.content and bot_contr:
-        await message.channel.send("I've received a message")
+        await message.channel.send("""Не-не, я - бот, и разговаривать не умею.
+Попроси меня о чем-нибудь в виде команды, и я тебе помогу. Например, /helper тебе в помощь!)""",
+                                   file=discord.File('static/img/bot.jpg'))
 
 
 bot.run(TOKEN)

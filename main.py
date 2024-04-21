@@ -2,12 +2,13 @@ import discord
 import sqlite3
 from discord.ext import commands
 from discord import app_commands
+from setup import TOKEN
 
 bot_contr = False
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
-bot = commands.Bot(command_prefix='#!', intents=discord.Intents.all())
+bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 
 db = sqlite3.connect('cars_database')
 cur = db.cursor()
@@ -28,7 +29,10 @@ async def start(interaction: discord.Interaction):
     global bot_contr
     bot_contr = True
     await interaction.response.send_message("""Привет! Это бот, который помогает выбрать нужную вам машину. 
-    \n/search_price - для поиска по цене\n/search_brand - для поиска по марке авто""", ephemeral=True)
+    \n/helper - для просмотра инструкции пользования ботом\n
+    /search_price - для поиска по цене\n
+    /search_brand - для поиска по марке авто\n
+    /search_by_mask - для поиска по конкретным характеристикам (см. /helper)""", ephemeral=True)
 
 
 @bot.tree.command(name='finish')
@@ -96,15 +100,19 @@ async def search(interaction: discord.Interaction, brand: str):
 
                 if s[6] == 'full':
                     s += f'Привод: полный\n'
+
                 elif s[6] == 'forward':
                     s += f'Привод: передний\n'
+
                 elif s[6] == 'backward':
                     s += f'Привод: задний\n'
 
                 if s[7] == 'diesel':
                     s += f'Привод: дизель\n'
+
                 elif s[7] == 'petrol':
                     s += f'Привод: бензин\n'
+
                 elif s[7] == 'hybrid':
                     s += f'Привод: гибрид\n'
 
@@ -128,7 +136,7 @@ async def search(interaction: discord.Interaction, brand: str):
 
 @bot.listen()
 async def on_message(message):
-    if not message.author.bot and '#!' not in message.content and bot_contr:
+    if not message.author.bot and '/' not in message.content and bot_contr:
         await message.channel.send("I've received a message")
 
 bot.run(TOKEN)

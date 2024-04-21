@@ -2,7 +2,6 @@ import discord
 import sqlite3
 from discord.ext import commands
 from discord import app_commands
-from setup import TOKEN
 
 bot_contr = False
 intents = discord.Intents.default()
@@ -44,9 +43,10 @@ async def help_bot(interaction: discord.Interaction):
     if bot_contr:
         data = '\n\n'.join(["""1) Все команды пишутся через / на английском языке. Список доступных команд:
 /helper - для просмотра инструкции пользования ботом;
-/search_price <price> - для поиска по цене;
-/search_brand <brand> - для поиска по марке авто;
-/search_by_mask - для поиска по конкретным характеристикам""",
+/search_price - для поиска по цене;
+/search_brand - для поиска по марке авто;
+/search_by_mask - для поиска по конкретным характеристикам;
+/search_year - для поиска по году производства""",
                             """2) Чтобы воспользоваться поиском по маске, используйте следующий синтаксис:
   % - любое количество символов. 
   Например, запрос "%ова" выдаст все слова заканчивающиеся на "ова", или 
@@ -90,11 +90,15 @@ async def search(interaction: discord.Interaction, brand: str):
         ans = []
         for i in cars:
             car = f'{i[1]} {i[2]}'.lower().split()
-            if len(set(brand.lower().split()) & set(car)) >= 1:
-                ans.append(i)
-        ans1 = []
+            q = len(set(brand.lower().split()) & set(car))
+            if q >= 1 and brand.lower().split()[0] in set(brand.lower().split()) & set(car):
+                ans.append((i, q))
+        ans.sort(key=lambda x: x[1], reverse=True)
+        qqq = 0
+        embedList = []
         if ans:
-            for q in ans:
+            for q1 in ans:
+                q = q1[0]
                 s = ''
 
                 s += f'Бренд: {q[1]}\n'
@@ -135,9 +139,24 @@ async def search(interaction: discord.Interaction, brand: str):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
-                ans1.append(s)
+                if qqq == 0:
+                    # await interaction.response.send_message('Лучший ответ:\n\n' + s)
+                    embed = discord.Embed(
+                        title='Лучший ответ:',
+                        description=s,
+                        colour=discord.Colour.from_rgb(106, 192, 245)
+                    )
+                    embedList.append(embed)
+                else:
+                    embed = discord.Embed(
+                        title='',
+                        description=s,
+                        colour=discord.Colour.from_rgb(106, 192, 245)
+                    )
+                    embedList.append(embed)
+                qqq += 1
 
-            await interaction.response.send_message('\n------------------------\n\n'.join(ans1))
+            await interaction.response.send_message(embeds=embedList[:10])
         else:
             await interaction.response.send_message("""По вашему запросу ничего не нашлось, попробуйте еще раз.
 Не забывайте указывать бренд и модель автомобиля на английском!""")
@@ -171,8 +190,9 @@ async def search_by_price(interaction: discord.Interaction, price: str):
         WHERE price {price}""").fetchall()
         countries = cur.execute("""SELECT name FROM countries""").fetchall()
         types = cur.execute("""SELECT name FROM types""").fetchall()
+        cars.sort(key=lambda x: x[13])
 
-        output_data = list()
+        embedList = []
         if cars:
             for q in cars:
                 s = ''
@@ -215,25 +235,98 @@ async def search_by_price(interaction: discord.Interaction, price: str):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
-                output_data.append(s)
+                embed = discord.Embed(
+                    title='',
+                    description=s,
+                    colour=discord.Colour.from_rgb(106, 192, 245)
+                )
+                embedList.append(embed)
 
-            lng = len(output_data[0])
-            to_print = [output_data[0]]
-            for x in output_data[1:]:
-                if lng + len(x) < (2000 - 100):
-                    lng += len(x)
-                    to_print[-1] += ('\n' + x + '\n')
-                else:
-                    break
-            # if len(to_print) == 1:
-            await interaction.response.send_message('\n------------------------\n\n'.join(to_print))
-            # else:
-            #     for x in to_print:
-            #         print(len(x))
-            #         await interaction.response.send_message('\n------------------------\n\n'.join(x))
+            await interaction.response.send_message(embeds=embedList[:10])
         else:
-            await interaction.response.send_message("""По вашему запросу ничего не нашлось, попробуйте еще раз.
-Не забывайте указывать бренд и модель автомобиля на английском!""")
+            await interaction.response.send_message("""По вашему запросу ничего не нашлось.
+Попробуйте поставить другую цену.""")
+
+
+@bot.tree.command(name='search_year')
+@app_commands.describe(year='год производства')
+async def search_by_year(interaction: discord.Interaction, year: int):
+    if bot_contr:
+        cars = cur.execute(f"""SELECT id,
+                                    brand,
+                                    model,
+                                    year,
+                                    horse_power,
+                                    engine,
+                                    drive,
+                                    fuel,
+                                    transmission,
+                                    country,
+                                    color,
+                                    body_type,
+                                    tax_per_year,
+                                    price,
+                                    condition,
+                                    run
+                                    FROM main 
+        WHERE year = {year}""").fetchall()
+        countries = cur.execute("""SELECT name FROM countries""").fetchall()
+        types = cur.execute("""SELECT name FROM types""").fetchall()
+
+        embedList = []
+        if cars:
+            for q in cars:
+                s = ''
+
+                s += f'Бренд: {q[1]}\n'
+
+                s += f'Модель: {q[2]}\n'
+
+                s += f'Год выпуска: {q[3]}\n'
+
+                s += f'Лошадиные силы: {q[4]}\n'
+
+                s += f'Объем двигателя: {q[5]}\n'
+
+                if s[6] == 'full':
+                    s += f'Привод: полный\n'
+
+                elif s[6] == 'forward':
+                    s += f'Привод: передний\n'
+
+                elif s[6] == 'backward':
+                    s += f'Привод: задний\n'
+
+                if s[7] == 'diesel':
+                    s += f'Привод: дизель\n'
+
+                elif s[7] == 'petrol':
+                    s += f'Привод: бензин\n'
+
+                elif s[7] == 'hybrid':
+                    s += f'Привод: гибрид\n'
+
+                s += f'Трансмисссия: {q[8]}\n'
+
+                s += f'Страна производителя: {countries[q[9] - 1][0]}\n'
+
+                s += f'Тип кузова: {types[q[11] - 1][0]}\n'
+
+                s += f'Годовой налог: {q[12]}\n'
+
+                s += f'Цена: ~{q[13]} руб.\n'
+
+                embed = discord.Embed(
+                    title='',
+                    description=s,
+                    colour=discord.Colour.from_rgb(106, 192, 245)
+                )
+                embedList.append(embed)
+
+            await interaction.response.send_message(embeds=embedList[:10])
+        else:
+            await interaction.response.send_message("""По вашему запросу ничего не нашлось.
+Попробуйте поставить другой год производства.""")
 
 
 @bot.listen()

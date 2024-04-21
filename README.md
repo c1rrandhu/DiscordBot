@@ -1,6 +1,8 @@
 ENG:
 1) Our project is a discord bot that helps people to match their dream auto by its stats, for instanse, brand or horse powers, price, running, etc.
 2) You can interact with bot by slash-commands like _**/helper**_ that outputs manual;
+> [!IMPORTANT]
+> You have to activate the bot by command _**/start**_ firstly!
 3) Data output consists of one _**Embed**_, where collected all stats of the auto, satisfied user's search:
    - Brand;
    - Model;
@@ -17,7 +19,9 @@ ENG:
 RUS:
 1) Проект представляет собой дискорд бота, помогающего пользователям подобрать автомобиль по его характеристикам, например, марке авто или лошадиным силам, цене, пробегу итд;
 2) С ботом можно взаимодействовать посредством слэш-команд. По команде _**/helper**_ выводится инструкция пользования;
-3) Вывод данных представляет собой _**Embed**_, в котором собраны все характеристики автомобиля, удовлетворяющему запросу пользователя:
+> [!IMPORTANT]
+> Сначала запустите бота при помощи команды _**/start**_!
+4) Вывод данных представляет собой _**Embed**_, в котором собраны все характеристики автомобиля, удовлетворяющему запросу пользователя:
    - Бренд;
    - Модель;
    - Год выпуска;

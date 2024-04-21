@@ -1,15 +1,18 @@
-import discord
+# libraries import
 import sqlite3
+import discord
 from discord.ext import commands
 from discord import app_commands
+from setup import TOKEN
 
 bot_contr = False
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
+
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 
-db = sqlite3.connect('cars_database')
+db = sqlite3.connect('static/db/cars_database')
 cur = db.cursor()
 
 
@@ -27,7 +30,7 @@ async def on_ready():
 async def start(interaction: discord.Interaction):
     global bot_contr
     bot_contr = True
-    await interaction.response.send_message("""Привет! Я - бот-помощник по поиску и выборе автомобиля.\n
+    await interaction.response.send_message("""Привет! Я - бот-помощник по поиску и выбору автомобиля.\n
 Чтобы узнать, как я работаю вызови команду /helper""", ephemeral=True)
 
 
@@ -54,7 +57,11 @@ async def help_bot(interaction: discord.Interaction):
   _ - любой один символ. Например, запрос поро_ может выдать как слово "порог", так и "порок";
   И никто не запрещает комбинировать маску. Например, "з_ма%" или "%м__ра%" """,
                             '3) При удачно выданном запросе, бот пришлет фото автомобиля',
-                            '4) Чтобы завершить мою работу, вызови команду /finish'])
+                            '4) Если Вы хотите произвести поиск по ценовому диапазону, '
+                            'Вы можете ввести как конкретное число, как одноименное неравенство, например, >1000000, '
+                            'так и сложное условие в формате {начальная цена:конечная цена};',
+                            '5) Пункт 4 так же применим и к поиску по году выпуска авто;',
+                            '6) Чтобы завершить мою работу, вызови команду /finish'])
         await interaction.response.send_message(data)
 
 
@@ -66,7 +73,7 @@ async def search(interaction: discord.Interaction):
 
 @bot.tree.command(name='search_brand')
 @app_commands.describe(brand="бренд, модель (на англ.):")
-async def search(interaction: discord.Interaction, brand: str):
+async def search_brand(interaction: discord.Interaction, brand: str):
     if bot_contr:
         cars = cur.execute("""SELECT id,
                             brand,
@@ -83,7 +90,8 @@ async def search(interaction: discord.Interaction, brand: str):
                             tax_per_year,
                             price,
                             condition,
-                            run
+                            run,
+                            url
                             FROM main""").fetchall()
         countries = cur.execute("""SELECT name FROM countries""").fetchall()
         types = cur.execute("""SELECT name FROM types""").fetchall()
@@ -96,8 +104,10 @@ async def search(interaction: discord.Interaction, brand: str):
         ans.sort(key=lambda x: x[1], reverse=True)
         qqq = 0
         embedList = []
+
         if ans:
             for q1 in ans:
+                url = ''
                 q = q1[0]
                 s = ''
 
@@ -139,21 +149,24 @@ async def search(interaction: discord.Interaction, brand: str):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
+                url = q[16]
+
                 if qqq == 0:
                     # await interaction.response.send_message('Лучший ответ:\n\n' + s)
                     embed = discord.Embed(
                         title='Лучший ответ:',
                         description=s,
-                        colour=discord.Colour.from_rgb(106, 192, 245)
-                    )
+                        colour=discord.Colour.from_rgb(106, 192, 245),
+                    ).set_image(url=url)
                     embedList.append(embed)
                 else:
                     embed = discord.Embed(
                         title='',
                         description=s,
                         colour=discord.Colour.from_rgb(106, 192, 245)
-                    )
+                    ).set_image(url=url)
                     embedList.append(embed)
+                print(url)
                 qqq += 1
 
             await interaction.response.send_message(embeds=embedList[:10])
@@ -168,6 +181,9 @@ async def search_by_price(interaction: discord.Interaction, price: str):
     if bot_contr:
         if '>' in price or '<' in price or '=' in price:
             pass
+        elif ':' in price:
+            price = price.split(':')
+            price = f'>={price[0]} and price <= {price[1]}'
         else:
             price = '=' + price
         cars = cur.execute(f"""SELECT id,
@@ -185,7 +201,8 @@ async def search_by_price(interaction: discord.Interaction, price: str):
                                     tax_per_year,
                                     price,
                                     condition,
-                                    run
+                                    run,
+                                    url
                                     FROM main 
         WHERE price {price}""").fetchall()
         countries = cur.execute("""SELECT name FROM countries""").fetchall()
@@ -193,8 +210,11 @@ async def search_by_price(interaction: discord.Interaction, price: str):
         cars.sort(key=lambda x: x[13])
 
         embedList = []
+        qqq = 0
+
         if cars:
             for q in cars:
+                url = ''
                 s = ''
 
                 s += f'Бренд: {q[1]}\n'
@@ -235,12 +255,25 @@ async def search_by_price(interaction: discord.Interaction, price: str):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
-                embed = discord.Embed(
-                    title='',
-                    description=s,
-                    colour=discord.Colour.from_rgb(106, 192, 245)
-                )
-                embedList.append(embed)
+                url = q[16]
+
+                if qqq == 0:
+                    # await interaction.response.send_message('Лучший ответ:\n\n' + s)
+                    embed = discord.Embed(
+                        title='Лучший ответ:',
+                        description=s,
+                        colour=discord.Colour.from_rgb(52, 205, 58),
+                    ).set_image(url=url)
+                    embedList.append(embed)
+                else:
+                    embed = discord.Embed(
+                        title='',
+                        description=s,
+                        colour=discord.Colour.from_rgb(52, 205, 58)
+                    ).set_image(url=url)
+                    embedList.append(embed)
+                print(url)
+                qqq += 1
 
             await interaction.response.send_message(embeds=embedList[:10])
         else:
@@ -250,8 +283,15 @@ async def search_by_price(interaction: discord.Interaction, price: str):
 
 @bot.tree.command(name='search_year')
 @app_commands.describe(year='год производства')
-async def search_by_year(interaction: discord.Interaction, year: int):
+async def search_by_year(interaction: discord.Interaction, year: str):
     if bot_contr:
+        if '>' in year or '<' in year or '=' in year:
+            pass
+        elif ':' in year:
+            year = year.split(':')
+            year = f'>={year[0]} and price <= {year[1]}'
+        else:
+            year = '=' + year
         cars = cur.execute(f"""SELECT id,
                                     brand,
                                     model,
@@ -267,15 +307,19 @@ async def search_by_year(interaction: discord.Interaction, year: int):
                                     tax_per_year,
                                     price,
                                     condition,
-                                    run
+                                    run,
+                                    url
                                     FROM main 
-        WHERE year = {year}""").fetchall()
+        WHERE year {year}""").fetchall()
         countries = cur.execute("""SELECT name FROM countries""").fetchall()
         types = cur.execute("""SELECT name FROM types""").fetchall()
 
         embedList = []
+        qqq = 0
+
         if cars:
             for q in cars:
+                url = ''
                 s = ''
 
                 s += f'Бренд: {q[1]}\n'
@@ -316,12 +360,25 @@ async def search_by_year(interaction: discord.Interaction, year: int):
 
                 s += f'Цена: ~{q[13]} руб.\n'
 
-                embed = discord.Embed(
-                    title='',
-                    description=s,
-                    colour=discord.Colour.from_rgb(106, 192, 245)
-                )
-                embedList.append(embed)
+                url = q[16]
+
+                if qqq == 0:
+                    # await interaction.response.send_message('Лучший ответ:\n\n' + s)
+                    embed = discord.Embed(
+                        title='Лучший ответ:',
+                        description=s,
+                        colour=discord.Colour.from_rgb(52, 205, 58),
+                    ).set_image(url=url)
+                    embedList.append(embed)
+                else:
+                    embed = discord.Embed(
+                        title='',
+                        description=s,
+                        colour=discord.Colour.from_rgb(52, 205, 58)
+                    ).set_image(url=url)
+                    embedList.append(embed)
+                print(url)
+                qqq += 1
 
             await interaction.response.send_message(embeds=embedList[:10])
         else:
@@ -332,7 +389,10 @@ async def search_by_year(interaction: discord.Interaction, year: int):
 @bot.listen()
 async def on_message(message):
     if not message.author.bot and '/' not in message.content and bot_contr:
-        await message.channel.send("I've received a message")
+        await message.channel.send("""Не-не, я - бот, и разговаривать не умею.
+Попроси меня о чем-нибудь в виде команды, и я тебе помогу. Например, /helper тебе в помощь!)""",
+                                   file=discord.File('static/img/bot.jpg'))
 
 
-bot.run(TOKEN)
+if __name__ == '__main__':
+    bot.run(TOKEN)

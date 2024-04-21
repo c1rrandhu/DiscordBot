@@ -10,7 +10,7 @@ intents.members = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=discord.Intents.all())
 
-db = sqlite3.connect('cars_database')
+db = sqlite3.connect('static/db/cars_database')
 cur = db.cursor()
 
 

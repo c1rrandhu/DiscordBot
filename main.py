@@ -16,6 +16,14 @@ db = sqlite3.connect('static/db/cars_database')
 cur = db.cursor()
 
 
+async def on_member_join(member):
+    await member.create_dm()
+    await member.dm_channel.send(
+        f'''Привет, {member.name}! Я - бот-помощник по поиску и выбору автомобиля.
+Чтобы начать со мной работать, напиши команду /start'''
+    )
+
+
 @bot.event
 async def on_ready():
     print("Bot is ready")

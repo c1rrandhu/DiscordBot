@@ -1046,7 +1046,7 @@ async def on_message(message):
     if not message.author.bot and '/' not in message.content and bot_contr:
         await message.channel.send("""Не-не, я - бот, и разговаривать не умею.
 Попроси меня о чем-нибудь в виде команды, и я тебе помогу. Например, /helper тебе в помощь!)""",
-                                   file=discord.File('static/img/bot.jpg'), ephemeral=True)
+                                   file=discord.File('static/img/bot.jpg'))
 
 
 if __name__ == '__main__':

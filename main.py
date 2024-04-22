@@ -1,6 +1,7 @@
 # libraries import
 import sqlite3
 import discord
+import requests
 from discord.ext import commands
 from discord import app_commands
 from setup import TOKEN
@@ -689,6 +690,45 @@ async def search_by_tax(interaction: discord.Interaction, tax: str):
         else:
             await interaction.response.send_message("""По вашему запросу ничего не нашлось.
 Попробуйте поставить другую сумму налога.""")
+
+
+@bot.tree.command(name='dev_info')
+async def dev_info(interaction: discord.Interaction):
+    if bot_contr:
+        geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
+        geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": 'Москва, ул. Барклая, 5А',
+            "format": "json"}
+
+        response = requests.get(geocoder_api_server, params=geocoder_params)
+
+        if not response:
+            pass
+        json_response = response.json()
+        toponym = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+
+        toponym_coodrinates = toponym["Point"]["pos"]
+        toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
+
+        delta = "0.005"
+
+        map_params = {
+            "ll": ",".join([toponym_longitude, toponym_lattitude]),
+            "spn": ",".join([delta, delta]),
+            "l": "map"
+        }
+        map_api_server = "http://static-maps.yandex.ru/1.x/"
+        response = requests.get(map_api_server, params=map_params)
+        embed = discord.Embed(
+            title='Авторы проекта:',
+            description="""c1rrandhu и nikitakosenkov
+            Адрес организации: г. Москва, ул. Барклая, 5А""",
+            colour=discord.Colour.from_rgb(0, 20, 255),
+        ).set_image(url=response.content)
+        await interaction.response.send_message(embed=embed)
 
 
 @bot.listen()

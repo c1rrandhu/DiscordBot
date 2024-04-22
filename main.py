@@ -511,7 +511,7 @@ async def search_by_year(interaction: discord.Interaction, year: str):
 @app_commands.describe(country='страна-производитель (на англ.)')
 async def search_country(interaction: discord.Interaction, country: str):
     if bot_contr:
-        countries = cur.execute(f"""SELECT id, name FROM countries WHERE name = "{country}" """).fetchall()
+        countries = cur.execute(f"""SELECT id, name FROM countries WHERE name = "{country.capitalize()}" """).fetchall()
         if countries:
             cars = cur.execute(f"""SELECT id,
             

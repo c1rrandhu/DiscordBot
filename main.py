@@ -32,13 +32,10 @@ async def on_member_join(member):
 @bot.event
 async def on_ready():
     print("Bot is ready")
-
     try:
         synced = await bot.tree.sync()
-
         print(f"Synced {len(synced)} commands")
     except Exception as e:
-
         print(e)
 
 
@@ -102,39 +99,22 @@ async def search_brand(interaction: discord.Interaction, brand: str):
     if bot_contr:
 
         cars = cur.execute("""SELECT id,
-        
                             brand,
-                            
-                            model,
-                            
-                            year,
-                            
-                            horse_power,
-                            
-                            engine,
-                            
-                            drive,
-                            
-                            fuel,
-                            
-                            transmission,
-                            
-                            country,
-                            
-                            color,
-                            
-                            body_type,
-                            
-                            tax_per_year,
-                            
-                            price,
-                            
-                            condition,
-                            
-                            run,
-                            
-                            url
-                            
+                            model,                           
+                            year,                            
+                            horse_power,                           
+                            engine,                          
+                            drive,                          
+                            fuel,                         
+                            transmission,                         
+                            country,                 
+                            color,                           
+                            body_type,                           
+                            tax_per_year,                           
+                            price,                            
+                            condition,                            
+                            run,         
+                            url                           
                             FROM main""").fetchall()
         countries = cur.execute("""SELECT name FROM countries""").fetchall()
 

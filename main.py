@@ -1003,21 +1003,23 @@ async def dev_info(interaction: discord.Interaction):
         toponym_coodrinates = toponym["Point"]["pos"]
         toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
 
-        delta = "0.005"
+        delta = "0.003"
 
         map_params = {
             "ll": ",".join([toponym_longitude, toponym_lattitude]),
             "spn": ",".join([delta, delta]),
-            "l": "map"
+            "l": "map",
+            'pt': ",".join([toponym_longitude, toponym_lattitude]) + ',flag'
         }
         map_api_server = "http://static-maps.yandex.ru/1.x/"
-        response = requests.get(map_api_server, params=map_params)
+        response = requests.get(map_api_server, params=map_params).url
+
         embed = discord.Embed(
             title='Авторы проекта:',
-            description="""c1rrandhu и nikitakosenkov
-            Адрес организации: г. Москва, ул. Барклая, 5А""",
+            description="""c1rrandhu и nikitakosenkov;
+Адрес организации: г. Москва, ул. Барклая, 5А""",
             colour=discord.Colour.from_rgb(0, 20, 255),
-        ).set_image(url=response.content)
+        ).set_image(url=response)
         await interaction.response.send_message(embed=embed)
 
 

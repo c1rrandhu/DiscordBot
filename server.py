@@ -881,7 +881,7 @@ async def search_by_horse(interaction: discord.Interaction, power: str):
             pass
         elif ':' in power:
             power = power.split(':')
-            power = f'>= {power[0]} and tax_per_year <= {power[1]}'
+            power = f'>= {power[0]} and horse_power <= {power[1]}'
         else:
             power = '=' + power
         cars = cur.execute(f"""SELECT id,
